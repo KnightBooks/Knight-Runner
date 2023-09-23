@@ -1,0 +1,108 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Constants
+WIDTH, HEIGHT = 800, 400
+GROUND_HEIGHT = 50
+PLAYER_WIDTH, PLAYER_HEIGHT = 50, 50
+DRAGON_WIDTH, DRAGON_HEIGHT = 100, 100
+PRINCESS_WIDTH, PRINCESS_HEIGHT = 50, 50
+PLAYER_SPEED = 5
+DRAGON_SPEED = 3
+PRINCESS_SPEED = 4
+OBSTACLE_WIDTH = 50
+OBSTACLE_HEIGHT = 50
+OBSTACLE_SPEED = 5
+
+# Colors
+WHITE = (255, 255, 255)
+
+# Create the screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Endless Runner")
+
+# Load images
+player_img = pygame.image.load("knight.png")
+player_img = pygame.transform.scale(player_img, (PLAYER_WIDTH, PLAYER_HEIGHT))
+
+dragon_img = pygame.image.load("dragon.png")
+dragon_img = pygame.transform.scale(dragon_img, (DRAGON_WIDTH, DRAGON_HEIGHT))
+
+princess_img = pygame.image.load("princess.png")
+princess_img = pygame.transform.scale(princess_img, (PRINCESS_WIDTH, PRINCESS_HEIGHT))
+
+obstacle_img = pygame.image.load("obstacle.png")
+obstacle_img = pygame.transform.scale(obstacle_img, (OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
+
+# Initialize variables
+player_x = 50
+player_y = HEIGHT - GROUND_HEIGHT - PLAYER_HEIGHT
+dragon_x = WIDTH
+dragon_y = HEIGHT - GROUND_HEIGHT - DRAGON_HEIGHT
+princess_x = WIDTH + 200
+princess_y = HEIGHT - GROUND_HEIGHT - PRINCESS_HEIGHT
+obstacles = []
+
+# Game loop
+running = True
+score = 0
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Handle player input
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_SPACE]:
+        player_y -= PLAYER_SPEED
+    else:
+        player_y += PLAYER_SPEED
+
+    # Update game elements
+    dragon_x -= DRAGON_SPEED
+    princess_x -= PRINCESS_SPEED
+
+    # Spawn obstacles
+    if random.randint(1, 100) < 10:
+        obstacle_x = WIDTH
+        obstacle_y = HEIGHT - GROUND_HEIGHT - OBSTACLE_HEIGHT
+        obstacles.append((obstacle_x, obstacle_y))
+
+    # Move obstacles
+    for i, obstacle in enumerate(obstacles):
+        obstacle_x, obstacle_y = obstacle
+        obstacle_x -= OBSTACLE_SPEED
+        obstacles[i] = (obstacle_x, obstacle_y)
+
+        # Check for collisions with player
+        if (
+            player_x < obstacle_x + OBSTACLE_WIDTH
+            and player_x + PLAYER_WIDTH > obstacle_x
+            and player_y < obstacle_y + OBSTACLE_HEIGHT
+            and player_y + PLAYER_HEIGHT > obstacle_y
+        ):
+            running = False
+
+        # Remove off-screen obstacles
+        if obstacle_x < -OBSTACLE_WIDTH:
+            obstacles.pop(i)
+            score += 1
+
+    # Draw everything
+    screen.fill(WHITE)
+    screen.blit(player_img, (player_x, player_y))
+    screen.blit(dragon_img, (dragon_x, dragon_y))
+    screen.blit(princess_img, (princess_x, princess_y))
+
+    for obstacle in obstacles:
+        obstacle_x, obstacle_y = obstacle
+        screen.blit(obstacle_img, (obstacle_x, obstacle_y))
+
+    pygame.display.update()
+
+# Game over
+pygame.quit()
